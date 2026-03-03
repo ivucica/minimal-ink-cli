@@ -241,3 +241,21 @@ I understand you ran into a TypeScript compilation error regarding module resolu
 I will update the Canvas document with the corrected TypeScript configuration (`"module": "NodeNext"` and `"moduleResolution": "NodeNext"`) and ensure the `package.json` is set up to output ESM via `npm pkg set type="module"`.
 
 The Canvas has been updated with these changes. Rebuilding the Docker image with this modified script will successfully resolve the types and compile the TypeScript code.
+
+
+/////////////////////////////
+
+I also asked the provenance to be **recorded** in a more industry-standard form, not just checked and printed. So, 'receipts' of some sort, in a standard format.
+
+
+
+I have updated the setup script to generate a provenance receipt formatted to comply with the **in-toto Statement** and **SLSA (Supply Chain Levels for Software Artifacts) Provenance** specifications, which are currently the prevailing industry standards for software supply chain security.
+
+The script now extracts the exact cryptographic digest that was verified and records it alongside the artifact name, download URL, and verification timestamp into a JSON manifest saved at `/etc/provenance/nodejs-receipt.json`.
+
+This ensures that any future audit of this container can confidently identify the exact binary hash and origin URL of the Node runtime, recorded in a machine-readable format. Let me know if you'd like to adjust the receipt's filesystem location or add similar provenance mapping for your NPM packages.
+
+
+//////////////////////
+
+
