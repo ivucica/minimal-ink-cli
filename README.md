@@ -309,3 +309,57 @@ Yes, the reversion is correct.
 The `rebuild.sh` script you provided successfully uses `docker create` and `docker cp` to extract the `/etc/provenance` directory directly from the built image to your host machine.
 
 This correctly relies on your `setup.sh` script doing the heavy lifting during the `docker build` phase (generating `deb-receipt.json`, `npm-receipt.json`, and `nodejs-receipt.json` inside the container). The script then successfully wraps up by generating the top-level `container-receipt.json` locally to complete the provenance chain.
+
+////////////////
+
+Please check the workflow and that it is _correctly_ uploading the artifacts for github SLSA features. How can I confirm it in web UI or via API?
+
+The previous workflow accurately implements the native GitHub SLSA integration for the **build process itself**, but there is a crucial distinction to make regarding how GitHub handles your custom `.deb` and `npm` receipts.
+
+### Workflow Assessment
+
+1. **`actions/attest-build-provenance@v2`**: This correctly generates a Sigstore-signed SLSA Level 3 statement proving *GitHub Actions* built the container from your specific commit. This natively integrates with GitHub's UI.
+2. **`actions/upload-artifact@v4`**: This simply uploads your custom `deb-receipt.json`, `npm-receipt.json`, etc., as a standard `.zip` file attached to the Action run. **GitHub's SLSA UI does not parse standard zip artifacts.** They remain verifiable by you, but won't appear as native "Attestations" in the GitHub package UI.
+
+To cryptographically bind your custom receipts to the image in the exact same way GitHub binds the build provenance, you should use the GitHub CLI (`gh attestation`) built into the runner.
+
+Here is the corrected workflow that both uploads the native build provenance *and* natively attests your custom receipts to the image digest:
+
+*(Note: If `gh attestation add --bundle` complains about the raw statement format generated in your shell scripts, you may need to strip the `_type` and `subject` wrappers in `setup.sh` and pass just the `predicate` object via the `--predicate` flag instead of `--bundle`. GitHub will automatically wrap it in the correct in-toto statement format).*
+
+### How to Confirm the SLSA Upload
+
+#### 1. Via the GitHub Web UI
+
+**For the Package (Registry view):**
+
+1. Navigate to the main page of your repository `ivucica/minimal-ink-cli`.
+2. Look at the right sidebar and click on **Packages**, then select the `minimal-ink-cli` package.
+3. Click on the `:latest` tag or the specific SHA digest.
+4. You will see a dedicated **Attestations** or **Provenance** section. It will display a verified checkmark and list the Sigstore-signed build provenance and any custom attestations.
+
+**For the Action Run (Workflow view):**
+
+1. Go to the **Actions** tab.
+2. Click on the specific workflow run.
+3. Under the **Artifacts** section at the bottom, you will see a badge for "Attestations" (showing the cryptographic signatures) alongside the standard zip file (`internal-provenance-receipts`).
+
+#### 2. Via the CLI / API (Industry Standard Verification)
+
+The most robust way to verify is using the GitHub CLI, which parses the OCI registry directly and cryptographically verifies the Sigstore signatures against GitHub's OIDC issuer.
+
+Run this command locally (requires `gh` CLI):
+
+```bash
+# Verify the attestations attached to the container
+gh attestation verify oci://ghcr.io/ivucica/minimal-ink-cli:latest --owner ivucica
+
+To inspect the actual JSON payloads that were attested (to ensure your `.deb` and `npm` data is inside):
+
+```bash
+# Download the raw signed statements from the registry
+gh attestation download oci://ghcr.io/ivucica/minimal-ink-cli:latest --owner ivucica
+
+This will download `.jsonl` files containing the verified in-toto statements natively bound to your container image.
+
+```
