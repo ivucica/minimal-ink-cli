@@ -27,12 +27,17 @@ docker build \
   -t ${IMAGE_NAME}:latest \
   .
 
+echo "==> Extracting provenance files from container..."
+# Create a dummy container (does not start it) to copy files out
+CONTAINER_ID=$(docker create ${IMAGE_NAME}:${VERSION})
+rm -rf ./build-provenance
+docker cp $CONTAINER_ID:/etc/provenance ./build-provenance
+docker rm $CONTAINER_ID
+
 echo "==> Generating final container provenance statement..."
 # Local images without a registry push only have an ID digest
 IMAGE_DIGEST_RAW=$(docker inspect --format='{{.Id}}' ${IMAGE_NAME}:${VERSION})
 IMAGE_DIGEST=${IMAGE_DIGEST_RAW#sha256:}
-
-mkdir -p ./build-provenance
 
 cat << EOF > ./build-provenance/container-receipt.json
 {
@@ -68,54 +73,5 @@ cat << EOF > ./build-provenance/container-receipt.json
 }
 EOF
 
-echo "==> Generating deb packages provenance receipt from built image..."
-DEB_DEPS=$(docker run --rm --entrypoint dpkg-query ${IMAGE_NAME}:${VERSION} -W -f='        {"uri": "pkg:deb/debian/${Package}@${Version}?arch=${Architecture}"},\n' | sed '$ s/,$//')
-
-cat << EOF > ./build-provenance/deb-receipt.json
-{
-  "_type": "https://in-toto.io/Statement/v1",
-  "subject": [{"name": "docker://${IMAGE_NAME}:${VERSION}", "digest": {"sha256": "${IMAGE_DIGEST}"}}],
-  "predicateType": "https://slsa.dev/provenance/v1",
-  "predicate": {
-    "resolvedDependencies": [
-$DEB_DEPS
-    ]
-  }
-}
-EOF
-
-echo "==> Generating npm packages provenance receipt from built image..."
-docker run --rm -w /app --entrypoint node ${IMAGE_NAME}:${VERSION} -e '
-const fs = require("fs");
-let lock;
-try {
-  lock = JSON.parse(fs.readFileSync("package-lock.json"));
-} catch (e) {
-  console.error("No package-lock.json found.");
-  process.exit(0);
-}
-const deps = [];
-for (const [path, pkg] of Object.entries(lock.packages || {})) {
-  if (path === "") continue;
-  if (pkg.resolved && pkg.integrity) {
-    const parts = pkg.integrity.split("-");
-    const algo = parts[0] === "sha512" ? "sha512" : "sha256";
-    const hash = Buffer.from(parts[1], "base64").toString("hex");
-    const name = path.replace(/.*node_modules\//, "");
-    deps.push({
-      uri: `pkg:npm/${name}@${pkg.version}`,
-      digest: { [algo]: hash }
-    });
-  }
-}
-const statement = {
-  _type: "https://in-toto.io/Statement/v1",
-  subject: [{ name: "docker://'"${IMAGE_NAME}"':'"${VERSION}"'", digest: { sha256: "'"${IMAGE_DIGEST}"'" } }],
-  predicateType: "https://slsa.dev/provenance/v1",
-  predicate: { resolvedDependencies: deps }
-};
-console.log(JSON.stringify(statement, null, 2));
-' > ./build-provenance/npm-receipt.json
-
 echo "==> Build complete."
-echo "==> Provenance for deb, npm, and the container itself saved to ./build-provenance/"
+echo "==> Provenance for deb, nodejs, npm, and the container itself saved to ./build-provenance/"
