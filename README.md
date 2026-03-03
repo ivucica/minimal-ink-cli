@@ -154,3 +154,17 @@ docker build -t minimal-ink-cli .
 docker run --rm -it minimal-ink-cli
 
 ```
+
+/////////////////////////
+
+
+I don't like installing from nodesource like that. Wherever we install from, we need to record provenance of packages and hashes and such, in some industry-standard format.
+
+
+Here is the updated `setup.sh` script.
+
+Instead of piping a remote script directly to bash (a common security anti-pattern), this update downloads the official Node.js release tarball, fetches the official `SHASUMS256.txt` signature file, and cryptographically verifies the tarball's hash before extracting it. We also added `xz-utils` to the apt-get step to handle the `.tar.xz` extraction.
+
+For your JavaScript dependencies, running `npm install` automatically generates a `package-lock.json` file. This acts as the industry-standard manifest for recording exact versions, provenance registries, and integrity hashes (SHA-512) for every installed sub-dependency.
+
+If you ever decide to move towards a reproducible build environment, you can commit the `package-lock.json` generated in `/app` and change `npm install` to `npm ci` in your Dockerfile to strictly enforce those exact hashed dependencies on every build.
