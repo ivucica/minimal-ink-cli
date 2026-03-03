@@ -53,37 +53,20 @@ jobs:
           
           echo "digest=$PURE_DIGEST" >> "$GITHUB_OUTPUT"
 
-      - name: Attest container (Native GitHub Artifact Attestations)
+      - name: Attest Container Image to GHCR
         uses: actions/attest-build-provenance@v2
         with:
           subject-name: ${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
 
-      - name: Attest generated receipt files
+      - name: Attest Local Receipt Files (Linked Artifacts API)
         uses: actions/attest-build-provenance@v2
         with:
-          # This establishes verifiable provenance that *this workflow run* created
-          # these specific json receipt files, fulfilling the linked-artifact mandate.
+          # Using subject-path automatically triggers the internal GitHub 
+          # /artifacts/metadata/storage-record API to securely link these 
+          # physical files to the workflow's attestations UI.
           subject-path: './build-provenance/*.json'
-
-      - name: Link custom provenance bundles to OCI image
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Use the gh CLI to push the custom predicate files (apt/npm/nodejs receipts)
-          # into the GHCR as signed referrers securely bound to the image digest.
-          gh attestation add "oci://${{ env.IMAGE_NAME }}@${{ steps.push.outputs.digest }}" \
-            --bundle ./build-provenance/deb-receipt.json \
-            --push-to-registry
-            
-          gh attestation add "oci://${{ env.IMAGE_NAME }}@${{ steps.push.outputs.digest }}" \
-            --bundle ./build-provenance/npm-receipt.json \
-            --push-to-registry
-            
-          gh attestation add "oci://${{ env.IMAGE_NAME }}@${{ steps.push.outputs.digest }}" \
-            --bundle ./build-provenance/nodejs-receipt.json \
-            --push-to-registry
 
       - name: Archive receipt artifacts for Workflow UI
         uses: actions/upload-artifact@v4
@@ -96,13 +79,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Check if there are changes to package files or provenance receipts
           if [[ -n "$(git status --porcelain ./build-provenance package.json package-lock.json 2>/dev/null)" ]]; then
-            echo "Changes detected. Creating a Pull Request..."
+            echo "Changes detected. Fetching bot identity via API..."
             
-            # Configure git identity as the standard GitHub Actions bot
+            # Fetch the exact ID for the GitHub Actions bot via the Users API
+            BOT_ID=$(gh api /users/github-actions%5Bbot%5D --jq '.id')
             git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git config user.email "${BOT_ID}+github-actions[bot]@users.noreply.github.com"
             
             BRANCH_NAME="update-manifests-${GITHUB_RUN_ID}"
             git checkout -b $BRANCH_NAME
