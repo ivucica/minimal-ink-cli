@@ -99,7 +99,7 @@ jobs:
               --title "chore: update provenance and package manifests" \
               --body "Automatically generated PR to update SLSA provenance receipts, \`package.json\`, and \`package-lock.json\` from workflow run ${GITHUB_RUN_ID}." \
               --base master \
-              --head $BRANCH_NAME
+              --head $BRANCH_NAME || true  # it's bad to ignore failure for initial create... but it may be a duplicate PR for the branch.
           else
             echo "No changes to commit."
           fi
