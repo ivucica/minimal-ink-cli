@@ -1,0 +1,31 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "subject": [
+    {
+      "name": "docker://minimal-ink-cli:b2b4a45",
+      "digest": {
+        "sha256": "4ea77bc2c4fb1ee89b9e157f68d79d52d1bebe3c8bbd1c1125544ba63c071213"
+      }
+    }
+  ],
+  "predicateType": "https://slsa.dev/provenance/v1",
+  "predicate": {
+    "buildDefinition": {
+      "buildType": "https://mobyproject.org/buildkit",
+      "resolvedDependencies": [
+        {
+          "uri": "docker://debian:stable-slim",
+          "digest": {
+            "sha256": "85dfcffff3c1e193877f143d05eaba8ae7f3f95cb0a32e0bc04a448077e1ac69"
+          }
+        }
+      ]
+    },
+    "runDetails": {
+      "metadata": {
+        "invocationId": "local-build-b2b4a45",
+        "startedOn": "2026-03-03T15:36:43Z"
+      }
+    }
+  }
+}
