@@ -32,6 +32,9 @@ echo "==> Extracting provenance files from container..."
 CONTAINER_ID=$(docker create ${IMAGE_NAME}:${VERSION})
 rm -rf ./build-provenance
 docker cp $CONTAINER_ID:/etc/provenance ./build-provenance
+# Extract NPM manifest and lockfile to update host repository
+docker cp $CONTAINER_ID:/app/package.json ./package.json || true
+docker cp $CONTAINER_ID:/app/package-lock.json ./package-lock.json || true
 docker rm $CONTAINER_ID
 
 echo "==> Generating final container provenance statement..."

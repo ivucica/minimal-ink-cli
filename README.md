@@ -381,3 +381,29 @@ Here is the updated, industry-standard workflow file:
 1. **Native Artifact Attestations**: By passing `subject-path: './build-provenance/*.json'` to `actions/attest-build-provenance`, GitHub cryptographically signs the physical JSON files themselves. If someone downloads your zipped artifacts later, they can independently verify they weren't tampered with post-build using `gh attestation verify <file>`.
 2. **Linked Artifacts via Referrers**: The `gh attestation add --bundle` commands take those custom receipts and upload them as linked OCI objects into `ghcr.io` pointing *at* your container digest.
 3. **Official SLSA Framework**: The second job calls `generator_container_slsa3.yml`. This creates a widely trusted, isolated signature (using Sigstore Fulcio/Rekor) proving the exact build environment, which automatically maps to SLSA Level 3. This signature will also show up directly in the GitHub UI alongside the container.
+
+
+///////////
+
+
+Please also update scripts with steps to automatically create a new commit with:
+
+- new attestations
+- packages.json and packages.json.lock updated from within the container
+
+created as a new commit in a new branch and sent out for review as  a PR
+
+
+I have updated `rebuild.sh` to extract the dynamically generated `package.json` and `package-lock.json` out of the container so they are accessible to the host.
+
+I've also modified the GitHub Actions workflow to grant the necessary Git permissions (`contents: write` and `pull-requests: write`) and added a step at the end of the build job to automatically commit these files alongside the newly generated attestations into a new branch and open a Pull Request using the GitHub CLI (`gh`).
+
+Here are the diffs to apply to your files:
+
+### A Quick Word of Caution Regarding Provenance Commits
+
+Because the `container-receipt.json` and `nodejs-receipt.json` files contain embedded timestamps (like `startedOn` and `verifiedAt`), they will evaluate as "changed" on every single build.
+
+Committing timestamps directly to the repository can create an **infinite PR loop**: merging the PR triggers a new build on `master`, which generates new timestamps, which triggers a new PR, and so on.
+
+If you encounter this loop, you may want to adjust the `git status --porcelain` check to *only* trigger the PR if `package.json` or `package-lock.json` changes, and ignore timestamp diffs in the `./build-provenance/*.json` files.

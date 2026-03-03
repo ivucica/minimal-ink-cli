@@ -17,10 +17,11 @@ jobs:
     runs-on: ubuntu-latest
     
     permissions:
-      contents: read
+      contents: write
       packages: write
       attestations: write
       id-token: write
+      pull-requests: write
 
     steps:
       - name: Checkout repository
@@ -90,6 +91,35 @@ jobs:
           name: internal-provenance-receipts
           path: ./build-provenance/*.json
           retention-days: 30
+
+      - name: Create PR with updated manifests and provenance
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Check if there are changes to package files or provenance receipts
+          if [[ -n "$(git status --porcelain ./build-provenance package.json package-lock.json 2>/dev/null)" ]]; then
+            echo "Changes detected. Creating a Pull Request..."
+            
+            # Configure git identity as the standard GitHub Actions bot
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            
+            BRANCH_NAME="update-manifests-${GITHUB_RUN_ID}"
+            git checkout -b $BRANCH_NAME
+            
+            git add ./build-provenance/*.json package.json package-lock.json
+            git commit -m "chore: update provenance and package manifests for ${GITHUB_SHA::7}"
+            git push origin $BRANCH_NAME
+            
+            # Create the Pull Request via gh cli
+            gh pr create \
+              --title "chore: update provenance and package manifests" \
+              --body "Automatically generated PR to update SLSA provenance receipts, \`package.json\`, and \`package-lock.json\` from workflow run ${GITHUB_RUN_ID}." \
+              --base master \
+              --head $BRANCH_NAME
+          else
+            echo "No changes to commit."
+          fi
 
   # This job uses the official SLSA framework reusable workflow.
   # It runs in total isolation to generate a non-forgeable SLSA Level 3 builder signature.
