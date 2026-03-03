@@ -1,0 +1,26 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "subject": [
+    {
+      "name": "node-v20.18.0-linux-x64.tar.xz",
+      "digest": {
+        "sha256": "4543670b589593f8fa5f106111fd5139081da42bb165a9239f05195e405f240a"
+      }
+    }
+  ],
+  "predicateType": "https://slsa.dev/provenance/v1",
+  "predicate": {
+    "buildDefinition": {
+      "buildType": "https://nodejs.org/release",
+      "externalParameters": {
+        "sourceUrl": "https://nodejs.org/dist/v20.18.0/node-v20.18.0-linux-x64.tar.xz",
+        "version": "20.18.0"
+      }
+    },
+    "runDetails": {
+      "metadata": {
+        "verifiedAt": "2026-03-03T15:47:36Z"
+      }
+    }
+  }
+}
