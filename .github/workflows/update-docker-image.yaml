@@ -92,7 +92,7 @@ jobs:
             
             git add ./build-provenance/*.json package.json package-lock.json
             git commit -m "chore: update provenance and package manifests for ${GITHUB_SHA::7}"
-            git push origin $BRANCH_NAME
+            git push --force origin $BRANCH_NAME
             
             # Create the Pull Request via gh cli
             gh pr create \
