@@ -1,0 +1,73 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/ivucica/minimal-ink-cli
+
+jobs:
+  build-attest-push:
+    runs-on: ubuntu-latest
+    
+    # These permissions are strictly required for publishing to GHCR 
+    # and minting the Sigstore OIDC token for SLSA provenance.
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run local rebuild script
+        run: |
+          # Execute the custom build script which creates the local image
+          # and extracts the internal provenance receipts to ./build-provenance/
+          chmod +x rebuild.sh
+          ./rebuild.sh
+
+      - name: Tag and Push images to GHCR
+        id: push
+        run: |
+          # Tag the locally built image for the GitHub Container Registry
+          docker tag minimal-ink-cli:latest ${{ env.IMAGE_NAME }}:latest
+          docker tag minimal-ink-cli:latest ${{ env.IMAGE_NAME }}:${GITHUB_REF_NAME}
+
+          # Push the tags to the registry
+          docker push ${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.IMAGE_NAME }}:${GITHUB_REF_NAME}
+
+          # Retrieve the immutable RepoDigest from the pushed image.
+          # We extract only the 'sha256:...' portion to feed into the attestation action.
+          FULL_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${{ env.IMAGE_NAME }}:latest)
+          PURE_DIGEST=$(echo $FULL_DIGEST | awk -F@ '{print $2}')
+          
+          echo "digest=$PURE_DIGEST" >> "$GITHUB_OUTPUT"
+
+      - name: Generate and upload GitHub SLSA build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          # This attaches the signed in-toto statement directly to the image in GHCR
+          push-to-registry: true
+
+      - name: Archive internal provenance receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: internal-provenance-receipts
+          path: ./build-provenance/*.json
+          retention-days: 30
