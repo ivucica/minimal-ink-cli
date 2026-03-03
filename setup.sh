@@ -29,6 +29,7 @@ cd /app
 
 echo "==> Initializing package.json..."
 npm init -y
+npm pkg set type="module"
 
 echo "==> Installing runtime and development dependencies..."
 npm install ink react ink-text-input
@@ -39,7 +40,8 @@ cat << 'EOF' > tsconfig.json
 {
   "compilerOptions": {
     "target": "es2022",
-    "module": "commonjs",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "jsx": "react",
     "outDir": "./dist",
     "rootDir": "./src",
