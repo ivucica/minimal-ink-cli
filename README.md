@@ -363,3 +363,21 @@ gh attestation download oci://ghcr.io/ivucica/minimal-ink-cli:latest --owner ivu
 This will download `.jsonl` files containing the verified in-toto statements natively bound to your container image.
 
 ```
+
+
+/////////////////////////
+
+
+Let's *also* add action for  https://github.com/slsa-framework/slsa-github-generator (review the readme) and let's use 'artifact attestations': https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/establish-provenance-and-integrity/upload-linked-artifacts
+
+To incorporate the official `slsa-framework/slsa-github-generator` alongside GitHub's native "Artifact Attestations" feature, we must restructure the workflow.
+
+The `slsa-framework` implements a strict, isolated reusable workflow to guarantee SLSA Level 3 compliance. This requires splitting our pipeline into two jobs: one to build, attest the artifacts natively, and push the image, and a second dependent job that calls the SLSA generator to officially sign the container in the registry.
+
+Here is the updated, industry-standard workflow file:
+
+### What this achieves:
+
+1. **Native Artifact Attestations**: By passing `subject-path: './build-provenance/*.json'` to `actions/attest-build-provenance`, GitHub cryptographically signs the physical JSON files themselves. If someone downloads your zipped artifacts later, they can independently verify they weren't tampered with post-build using `gh attestation verify <file>`.
+2. **Linked Artifacts via Referrers**: The `gh attestation add --bundle` commands take those custom receipts and upload them as linked OCI objects into `ghcr.io` pointing *at* your container digest.
+3. **Official SLSA Framework**: The second job calls `generator_container_slsa3.yml`. This creates a widely trusted, isolated signature (using Sigstore Fulcio/Rekor) proving the exact build environment, which automatically maps to SLSA Level 3. This signature will also show up directly in the GitHub UI alongside the container.
