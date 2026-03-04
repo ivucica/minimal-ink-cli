@@ -1,0 +1,59 @@
+name: Close old update-manifests PRs
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  close-prs:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      actions: write
+    steps:
+      - name: Close old update-manifests PRs except newest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          REPO="${{ github.repository }}"
+          PR_TITLE="chore: update provenance and package manifests"
+
+          # List all open PRs with the matching title, sorted by number descending (newest first)
+          PRS=$(gh pr list --repo "$REPO" --state open --json number,title \
+            --jq ".[] | select(.title == \"$PR_TITLE\") | .number" \
+            | sort -rn)
+
+          if [ -z "$PRS" ]; then
+            echo "No matching open PRs found."
+            exit 0
+          fi
+
+          FIRST=true
+          while IFS= read -r PR_NUMBER; do
+            if [ "$FIRST" = true ]; then
+              echo "Keeping newest PR: #$PR_NUMBER"
+              FIRST=false
+              continue
+            fi
+
+            echo "Processing PR #$PR_NUMBER for closing"
+
+            # Get the head branch name for this PR
+            BRANCH=$(gh api "repos/$REPO/pulls/$PR_NUMBER" --jq '.head.ref')
+
+            # Cancel associated workflow runs (queued and in_progress)
+            for STATUS in queued in_progress; do
+              RUN_IDS=$(gh api "repos/$REPO/actions/runs" \
+                --field "branch=$BRANCH" \
+                --field "status=$STATUS" \
+                --jq '.workflow_runs[].id' 2>/dev/null || true)
+              for RUN_ID in $RUN_IDS; do
+                echo "Canceling run $RUN_ID for branch $BRANCH (status: $STATUS)"
+                gh api -X POST "repos/$REPO/actions/runs/$RUN_ID/cancel" || true
+              done
+            done
+
+            # Close the PR
+            echo "Closing PR #$PR_NUMBER"
+            gh api -X PATCH "repos/$REPO/pulls/$PR_NUMBER" --field state=closed || true
+          done <<< "$PRS"
