@@ -2,6 +2,7 @@
 set -e
 
 IMAGE_NAME="minimal-ink-cli"
+IMAGE_DESCRIPTION="A minimal CLI example using Ink and React for building interactive terminal UIs"
 # Attempt to get the short git hash; fallback to v1.0.0 if not in a git repo
 VERSION=$(git rev-parse --short HEAD 2>/dev/null || echo "v1.0.0")
 BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -23,6 +24,7 @@ docker build \
   --label org.opencontainers.image.version="$VERSION" \
   --label org.opencontainers.image.base.name="$BASE_IMAGE" \
   --label org.opencontainers.image.base.digest="$BASE_DIGEST" \
+  --label org.opencontainers.image.description="$IMAGE_DESCRIPTION" \
   -t ${IMAGE_NAME}:${VERSION} \
   -t ${IMAGE_NAME}:latest \
   .
