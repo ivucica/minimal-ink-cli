@@ -11,6 +11,9 @@ env:
 
 jobs:
   build-and-push:
+    if: |
+      !startsWith(github.event.head_commit.message, 'chore: update provenance and package manifests') &&
+      !startsWith(github.ref_name, 'update-manifests-')
     outputs:
       image: ${{ env.IMAGE_NAME }}
       digest: ${{ steps.push.outputs.digest }}
@@ -82,6 +85,7 @@ jobs:
           retention-days: 30
 
       - name: Create PR with updated manifests and provenance
+        if: "!startsWith(github.event.head_commit.message, 'chore: update provenance and package manifests')"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
