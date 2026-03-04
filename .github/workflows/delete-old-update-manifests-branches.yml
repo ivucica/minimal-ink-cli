@@ -1,0 +1,54 @@
+name: Delete old update-manifests branches
+
+on:
+  workflow_dispatch:
+
+jobs:
+  delete-branches:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: Delete old update-manifests- branches except newest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          REPO="${{ github.repository }}"
+
+          # List all branches starting with "update-manifests-", sorted by name descending (newest first)
+          BRANCHES=$(gh api "repos/$REPO/branches" --paginate \
+            --jq '.[] | select(.name | startswith("update-manifests-")) | .name' \
+            | sort -r)
+
+          if [ -z "$BRANCHES" ]; then
+            echo "No update-manifests- branches found."
+            exit 0
+          fi
+
+          FIRST=true
+          while IFS= read -r BRANCH; do
+            if [ "$FIRST" = true ]; then
+              echo "Keeping newest branch: $BRANCH"
+              FIRST=false
+              continue
+            fi
+
+            echo "Processing branch for deletion: $BRANCH"
+
+            # Cancel associated workflow runs (queued and in_progress)
+            for STATUS in queued in_progress; do
+              RUN_IDS=$(gh api "repos/$REPO/actions/runs" \
+                --field "branch=$BRANCH" \
+                --field "status=$STATUS" \
+                --jq '.workflow_runs[].id' 2>/dev/null || true)
+              for RUN_ID in $RUN_IDS; do
+                echo "Canceling run $RUN_ID for branch $BRANCH (status: $STATUS)"
+                gh api -X POST "repos/$REPO/actions/runs/$RUN_ID/cancel" || true
+              done
+            done
+
+            # Delete the branch
+            echo "Deleting branch: $BRANCH"
+            gh api -X DELETE "repos/$REPO/git/refs/heads/$BRANCH"
+          done <<< "$BRANCHES"
