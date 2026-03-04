@@ -455,3 +455,41 @@ Here is the finalized workflow incorporating the dynamic API fetch for the bot I
 
 The workflow now uses standard `actions/attest-build-provenance@v2` for the `subject-path`, which executes the `storage-record` payload generation and POST requests against GitHub's internal endpoints automatically, ensuring your `.json` receipts appear as natively verified artifacts.
 
+/////////////////////////////
+
+
+```
+if [[ -n "$(git status --porcelain ./build-provenance package.json package-lock.json 2>/dev/null)" ]]; then
+Changes detected. Fetching bot identity via API...
+Switched to a new branch 'update-manifests-22630372053'
+[update-manifests-22630372053 e6b0f44] chore: update provenance and package manifests for b2b4a45
+ 6 files changed, 1030 insertions(+)
+ create mode 100644 build-provenance/container-receipt.json
+ create mode 100644 build-provenance/deb-receipt.json
+ create mode 100644 build-provenance/nodejs-receipt.json
+ create mode 100644 build-provenance/npm-receipt.json
+ create mode 100644 package-lock.json
+ create mode 100644 package.json
+remote: 
+remote: Create a pull request for 'update-manifests-22630372053' on GitHub by visiting:        
+remote:      https://github.com/ivucica/minimal-ink-cli/pull/new/update-manifests-22630372053        
+remote: 
+To https://github.com/ivucica/minimal-ink-cli
+ * [new branch]      update-manifests-22630372053 -> update-manifests-22630372053
+pull request create failed: GraphQL: GitHub Actions is not permitted to create or approve pull requests (createPullRequest)
+Error: Process completed with exit code 1.
+```
+
+This error occurs because a repository-level security setting is actively blocking the default `GITHUB_TOKEN` from opening Pull Requests, overriding the `permissions:` block in your workflow file.
+
+To fix this, you need to enable the permission in your repository settings:
+
+1. Go to your repository on GitHub (`ivucica/minimal-ink-cli`).
+2. Click on **Settings** > **Actions** > **General** (on the left sidebar).
+3. Scroll down to the **Workflow permissions** section.
+4. Check the box that says **"Allow GitHub Actions to create and approve pull requests"**.
+5. Click **Save**.
+
+Once this box is checked, the `gh pr create` command will succeed on the next run.
+
+*(Note: If you are in an organization that enforces this setting globally and prevents you from checking that box, your only alternative is to create a Personal Access Token (PAT) with `repo` scope, save it as a repository secret like `PAT_TOKEN`, and pass `env: GH_TOKEN: ${{ secrets.PAT_TOKEN }}` to the PR creation step instead).*
