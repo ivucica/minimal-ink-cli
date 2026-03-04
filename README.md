@@ -493,3 +493,69 @@ To fix this, you need to enable the permission in your repository settings:
 Once this box is checked, the `gh pr create` command will succeed on the next run.
 
 *(Note: If you are in an organization that enforces this setting globally and prevents you from checking that box, your only alternative is to create a Personal Access Token (PAT) with `repo` scope, save it as a repository secret like `PAT_TOKEN`, and pass `env: GH_TOKEN: ${{ secrets.PAT_TOKEN }}` to the PR creation step instead).*
+
+/////////////////////
+
+
+Please review https://slsa.dev/blog/2023/05/in-toto-and-slsa and tell me how we can add the other predicates available (updated for whatever version of the framework we are using)?
+
+Based on the SLSA and in-toto architecture detailed in the blog post, the critical distinction is that **in-toto is the envelope** (`Statement`) and **SLSA is just one type of document** (`Predicate`) that fits inside it.
+
+Right now, you are wrapping a SLSA v1.0 Provenance predicate (`https://slsa.dev/provenance/v1`) inside an in-toto v1 Statement (`https://in-toto.io/Statement/v1`). However, the in-toto specification officially supports several other highly standardized predicate types for the software supply chain:
+
+1. **Software Bill of Materials (SBOM)**: Predicate type `https://spdx.dev/Document` (SPDX) or `https://cyclonedx.org/bom` (CycloneDX). This is actually the correct industry standard for recording your `.deb` and `npm` packages, rather than overloading the SLSA `resolvedDependencies` build definition.
+2. **Test Results**: Predicate type `https://in-toto.io/attestation/test-result/v1`. Proves that the artifact passed specific quality or security gates before being published.
+3. **Vulnerability Scans**: Predicate type `https://cosign.sigstore.dev/attestation/vuln/v1` or SARIF. Proves the artifact was scanned for CVEs at build time.
+
+Because your GitHub Actions workflow is already configured to attest *any* JSON file matching `./build-provenance/*.json`, we only need to modify `rebuild.sh` to generate these new predicates and wrap them in the in-toto envelope. GitHub will automatically bind them to your container.
+
+Here is how to add an **SPDX SBOM** (using Syft) and a **Test Result** predicate to your build script.
+
+### How this functions within the architecture:
+
+1. **The SPDX SBOM Predicate**: By using `anchore/syft`, the script deeply inspects the container, finds the Debian packages *and* the Node packages simultaneously, and formats them strictly to the SPDX 2.3 specification. It then uses `jq` to wrap that massive SPDX JSON payload inside the `predicate` field of an in-toto Statement.
+2. **The Test Result Predicate**: This uses the `https://in-toto.io/attestation/test-result/v1` schema to cryptographically assert that this specific image digest passed its test suite.
+
+When your GitHub Actions workflow runs the `actions/attest-build-provenance` step with `subject-path: './build-provenance/*.json'`, it will automatically upload the SBOM, the test results, and your custom dependency receipts as securely linked OCI artifacts directly attached to your container image in GHCR.
+
+///////////////////
+
+I had to edit your rebuild.sh code a little bit, so I will paste the update soon, but can you tell me what can I use instead of jest, because obviously we did not use jest?
+
+If you have not set up a dedicated testing framework yet, you should reflect exactly what validation *did* happen, or use Node's built-in tools. Here are the most accurate replacements for your current setup:
+
+**1. `tsc` (TypeScript Compiler)**
+Since your Dockerfile currently runs `npx tsc`, your primary "quality gate" right now is the TypeScript compiler successfully type-checking and building the code.
+
+```json
+"testExecution": {
+  "testFramework": "tsc",
+  "testInvocationId": "local-build"
+}
+
+```
+
+**2. `node:test` (Node.js Built-in Test Runner)**
+If you plan to add actual unit tests in the next step, you should use Node 20's native test runner (`node --test`). This avoids adding external dependencies like Jest while keeping the minimal footprint you want.
+
+```json
+"testExecution": {
+  "testFramework": "node:test",
+  "testInvocationId": "local-build"
+}
+
+```
+
+**3. `manual` or `custom-script**`
+If you are just doing a basic bash check or placeholder until tests are written, label it exactly as what it is. The in-toto `test-result/v1` specification does not enforce an enum for `testFramework`; it just requires a descriptive string.
+
+```json
+"testExecution": {
+  "testFramework": "manual-build-verification",
+  "testInvocationId": "local-build"
+}
+
+```
+
+When you paste your updated `rebuild.sh`, I will review it to ensure the in-toto formatting remains compliant with the specifications.
+
