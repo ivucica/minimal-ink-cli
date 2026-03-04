@@ -87,7 +87,7 @@ EOF
 echo "==> Generating SPDX SBOM predicate using Syft..."
 # Run syft via docker to inspect the image we just built, outputting standard SPDX JSON
 docker run --rm -v /var/run/docker.sock:/var/run/docker.sock anchore/syft:latest \
-  packages docker:${IMAGE_NAME}:${VERSION} -o spdx-json > /tmp/raw-sbom.json
+  packages docker:${IMAGE_NAME}:${VERSION} -o spdx-json > ./build-provenance/raw-spdx-sbom.json
 
 # Use jq to wrap the raw SPDX JSON inside the in-toto Statement envelope
 jq --arg img "docker://${IMAGE_NAME}:${VERSION}" --arg digest "${IMAGE_DIGEST}" '{
@@ -95,8 +95,7 @@ jq --arg img "docker://${IMAGE_NAME}:${VERSION}" --arg digest "${IMAGE_DIGEST}" 
   "subject": [{"name": $img, "digest": {"sha256": $digest}}],
   "predicateType": "https://spdx.dev/Document",
   "predicate": .
-}' /tmp/raw-sbom.json > ./build-provenance/sbom-receipt.json
-rm /tmp/raw-sbom.json
+}' ./build-provenance/raw-spdx-sbom.json > ./build-provenance/sbom-receipt.json
 
 # ---------------------------------------------------------
 # PREDICATE 3: TEST RESULT (Did it pass quality gates)
