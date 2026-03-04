@@ -455,3 +455,178 @@ Here is the finalized workflow incorporating the dynamic API fetch for the bot I
 
 The workflow now uses standard `actions/attest-build-provenance@v2` for the `subject-path`, which executes the `storage-record` payload generation and POST requests against GitHub's internal endpoints automatically, ensuring your `.json` receipts appear as natively verified artifacts.
 
+/////////////////////////////
+
+
+```
+if [[ -n "$(git status --porcelain ./build-provenance package.json package-lock.json 2>/dev/null)" ]]; then
+Changes detected. Fetching bot identity via API...
+Switched to a new branch 'update-manifests-22630372053'
+[update-manifests-22630372053 e6b0f44] chore: update provenance and package manifests for b2b4a45
+ 6 files changed, 1030 insertions(+)
+ create mode 100644 build-provenance/container-receipt.json
+ create mode 100644 build-provenance/deb-receipt.json
+ create mode 100644 build-provenance/nodejs-receipt.json
+ create mode 100644 build-provenance/npm-receipt.json
+ create mode 100644 package-lock.json
+ create mode 100644 package.json
+remote: 
+remote: Create a pull request for 'update-manifests-22630372053' on GitHub by visiting:        
+remote:      https://github.com/ivucica/minimal-ink-cli/pull/new/update-manifests-22630372053        
+remote: 
+To https://github.com/ivucica/minimal-ink-cli
+ * [new branch]      update-manifests-22630372053 -> update-manifests-22630372053
+pull request create failed: GraphQL: GitHub Actions is not permitted to create or approve pull requests (createPullRequest)
+Error: Process completed with exit code 1.
+```
+
+This error occurs because a repository-level security setting is actively blocking the default `GITHUB_TOKEN` from opening Pull Requests, overriding the `permissions:` block in your workflow file.
+
+To fix this, you need to enable the permission in your repository settings:
+
+1. Go to your repository on GitHub (`ivucica/minimal-ink-cli`).
+2. Click on **Settings** > **Actions** > **General** (on the left sidebar).
+3. Scroll down to the **Workflow permissions** section.
+4. Check the box that says **"Allow GitHub Actions to create and approve pull requests"**.
+5. Click **Save**.
+
+Once this box is checked, the `gh pr create` command will succeed on the next run.
+
+*(Note: If you are in an organization that enforces this setting globally and prevents you from checking that box, your only alternative is to create a Personal Access Token (PAT) with `repo` scope, save it as a repository secret like `PAT_TOKEN`, and pass `env: GH_TOKEN: ${{ secrets.PAT_TOKEN }}` to the PR creation step instead).*
+
+/////////////////////
+
+
+Please review https://slsa.dev/blog/2023/05/in-toto-and-slsa and tell me how we can add the other predicates available (updated for whatever version of the framework we are using)?
+
+Based on the SLSA and in-toto architecture detailed in the blog post, the critical distinction is that **in-toto is the envelope** (`Statement`) and **SLSA is just one type of document** (`Predicate`) that fits inside it.
+
+Right now, you are wrapping a SLSA v1.0 Provenance predicate (`https://slsa.dev/provenance/v1`) inside an in-toto v1 Statement (`https://in-toto.io/Statement/v1`). However, the in-toto specification officially supports several other highly standardized predicate types for the software supply chain:
+
+1. **Software Bill of Materials (SBOM)**: Predicate type `https://spdx.dev/Document` (SPDX) or `https://cyclonedx.org/bom` (CycloneDX). This is actually the correct industry standard for recording your `.deb` and `npm` packages, rather than overloading the SLSA `resolvedDependencies` build definition.
+2. **Test Results**: Predicate type `https://in-toto.io/attestation/test-result/v1`. Proves that the artifact passed specific quality or security gates before being published.
+3. **Vulnerability Scans**: Predicate type `https://cosign.sigstore.dev/attestation/vuln/v1` or SARIF. Proves the artifact was scanned for CVEs at build time.
+
+Because your GitHub Actions workflow is already configured to attest *any* JSON file matching `./build-provenance/*.json`, we only need to modify `rebuild.sh` to generate these new predicates and wrap them in the in-toto envelope. GitHub will automatically bind them to your container.
+
+Here is how to add an **SPDX SBOM** (using Syft) and a **Test Result** predicate to your build script.
+
+### How this functions within the architecture:
+
+1. **The SPDX SBOM Predicate**: By using `anchore/syft`, the script deeply inspects the container, finds the Debian packages *and* the Node packages simultaneously, and formats them strictly to the SPDX 2.3 specification. It then uses `jq` to wrap that massive SPDX JSON payload inside the `predicate` field of an in-toto Statement.
+2. **The Test Result Predicate**: This uses the `https://in-toto.io/attestation/test-result/v1` schema to cryptographically assert that this specific image digest passed its test suite.
+
+When your GitHub Actions workflow runs the `actions/attest-build-provenance` step with `subject-path: './build-provenance/*.json'`, it will automatically upload the SBOM, the test results, and your custom dependency receipts as securely linked OCI artifacts directly attached to your container image in GHCR.
+
+///////////////////
+
+I had to edit your rebuild.sh code a little bit, so I will paste the update soon, but can you tell me what can I use instead of jest, because obviously we did not use jest?
+
+If you have not set up a dedicated testing framework yet, you should reflect exactly what validation *did* happen, or use Node's built-in tools. Here are the most accurate replacements for your current setup:
+
+**1. `tsc` (TypeScript Compiler)**
+Since your Dockerfile currently runs `npx tsc`, your primary "quality gate" right now is the TypeScript compiler successfully type-checking and building the code.
+
+```json
+"testExecution": {
+  "testFramework": "tsc",
+  "testInvocationId": "local-build"
+}
+
+```
+
+**2. `node:test` (Node.js Built-in Test Runner)**
+If you plan to add actual unit tests in the next step, you should use Node 20's native test runner (`node --test`). This avoids adding external dependencies like Jest while keeping the minimal footprint you want.
+
+```json
+"testExecution": {
+  "testFramework": "node:test",
+  "testInvocationId": "local-build"
+}
+
+```
+
+**3. `manual` or `custom-script**`
+If you are just doing a basic bash check or placeholder until tests are written, label it exactly as what it is. The in-toto `test-result/v1` specification does not enforce an enum for `testFramework`; it just requires a descriptive string.
+
+```json
+"testExecution": {
+  "testFramework": "manual-build-verification",
+  "testInvocationId": "local-build"
+}
+
+```
+
+When you paste your updated `rebuild.sh`, I will review it to ensure the in-toto formatting remains compliant with the specifications.
+
+
+/////////////
+
+Thank you for the help. Canvas for rebuild.sh has been updated. I would like to ensure now that we find SPDX SBOM API for GitHub, and that we upload SPDX SBOM using the correct API call or CLI tool in the workflow.
+
+GitHub's native Dependency Submission API (`POST /repos/{owner}/{repo}/dependency-graph/snapshots`) does not accept raw SPDX or CycloneDX JSON. It requires a proprietary GitHub "snapshot" format.
+
+To bridge this gap, GitHub's Advanced Security team maintains the official `advanced-security/spdx-dependency-submission-action`. This toolkit parses your SPDX JSON, converts it to the GitHub Snapshot schema, and submits it to the REST API. Once uploaded, Dependabot will immediately begin tracking the `.deb` and `npm` packages inside the container for vulnerabilities, and they will appear in your repository's **Insights -> Dependency graph** tab.
+
+Because this tool requires a strictly compliant, raw SPDX file (not an in-toto wrapper), you need to make a minor adjustment to `rebuild.sh` to retain the raw SBOM alongside the wrapped receipt, and then add the submission step to your workflow.
+
+### 1. Update `rebuild.sh` (SBOM Generation Step)
+
+Modify the SPDX generation block to retain the raw Syft output inside the `./build-provenance` directory so the Action can read it:
+
+```bash
+# ---------------------------------------------------------
+# PREDICATE 2: SPDX SBOM (What is inside it)
+# ---------------------------------------------------------
+echo "==> Generating SPDX SBOM predicate using Syft..."
+# Output the raw SPDX directly to the provenance folder
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock anchore/syft:latest \
+  packages docker:${IMAGE_NAME}:${VERSION} -o spdx-json > ./build-provenance/raw-spdx-sbom.json
+
+# Use jq to wrap the raw SPDX JSON inside the in-toto Statement envelope
+jq --arg img "docker://${IMAGE_NAME}:${VERSION}" --arg digest "${IMAGE_DIGEST}" '{
+  "_type": "https://in-toto.io/Statement/v1",
+  "subject": [{"name": $img, "digest": {"sha256": $digest}}],
+  "predicateType": "https://spdx.dev/Document",
+  "predicate": .
+}' ./build-provenance/raw-spdx-sbom.json > ./build-provenance/sbom-receipt.json
+
+```
+
+### 2. Update the GitHub Actions Workflow
+
+Add the `spdx-dependency-submission-action` right after your script runs, but before the PR creation step.
+
+*Note: The `packages: write` and `contents: write` permissions you already have in the workflow are exactly what this action needs to authenticate the API call.*
+
+```yaml
+      - name: Run local rebuild script
+        run: |
+          chmod +x rebuild.sh
+          ./rebuild.sh
+
+      # --- ADD THIS STEP ---
+      - name: Submit SBOM to GitHub Dependency Graph
+        uses: advanced-security/spdx-dependency-submission-action@v0.2.0
+        with:
+          # Point it exactly to the raw SPDX file generated by Syft
+          filePath: './build-provenance/raw-spdx-sbom.json'
+      # ---------------------
+
+      - name: Tag and Push images to GHCR
+        id: push
+        run: |
+          docker tag minimal-ink-cli:latest ${{ env.IMAGE_NAME }}:latest
+# ... rest of the existing workflow
+
+```
+
+### Verification
+
+Once the workflow runs:
+
+1. Navigate to the main page of your repository.
+2. Click the **Insights** tab.
+3. Click **Dependency graph** in the left sidebar.
+4. You will see a new entry tracking your Docker container. Clicking it will reveal the entire tree of Debian OS packages and nested NPM modules discovered by Syft. Dependabot will automatically trigger alerts if any of these matching versions appear in GitHub Advisory Database.
+
