@@ -60,14 +60,14 @@ jobs:
           echo "digest=$PURE_DIGEST" >> "$GITHUB_OUTPUT"
 
       - name: Attest Container Image to GHCR
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-name: ${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
 
       - name: Attest Local Receipt Files (Linked Artifacts API)
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           # Using subject-path automatically triggers the internal GitHub 
           # /artifacts/metadata/storage-record API to securely link these 
