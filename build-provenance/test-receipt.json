@@ -1,0 +1,13 @@
+{
+  "_type": "https://in-toto.io/Statement/v1",
+  "subject": [{"name": "docker://minimal-ink-cli:266aa9c", "digest": {"sha256": "6736b8ee0214644bacc4410bfd63e24bc49e59871ca537e38dc1ed307ec42b68"}}],
+  "predicateType": "https://in-toto.io/attestation/test-result/v1",
+  "predicate": {
+    "result": "PASSED",
+    "timestamp": "2026-03-04T12:18:51Z",
+    "testExecution": {
+      "testFramework": "tsc",
+      "testInvocationId": "build-only:22669026311"
+    }
+  }
+}
