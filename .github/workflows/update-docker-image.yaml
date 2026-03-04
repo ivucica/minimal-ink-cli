@@ -85,8 +85,51 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [[ -n "$(git status --porcelain ./build-provenance package.json package-lock.json 2>/dev/null)" ]]; then
-            echo "Changes detected. Fetching bot identity via API..."
+          MEANINGFUL_CHANGES=false
+
+          # Check package.json and package-lock.json for any changes
+          if [[ -n "$(git status --porcelain package.json package-lock.json 2>/dev/null)" ]]; then
+            MEANINGFUL_CHANGES=true
+          fi
+
+          # Check build-provenance files, excluding the two receipts with known noop-only fields
+          OTHER_PROVENANCE=$(git status --porcelain ./build-provenance 2>/dev/null \
+            | awk '{print $2}' \
+            | grep -vE '(nodejs-receipt|container-receipt)\.json$' || true)
+          if [[ -n "$OTHER_PROVENANCE" ]]; then
+            MEANINGFUL_CHANGES=true
+          fi
+
+          # Check nodejs-receipt.json, ignoring verifiedAt (changes on every verification run)
+          if [[ -n "$(git status --porcelain build-provenance/nodejs-receipt.json 2>/dev/null)" ]]; then
+            if git show HEAD:build-provenance/nodejs-receipt.json > /tmp/nodejs-head.json 2>/dev/null; then
+              jq 'del(.predicate.runDetails.metadata.verifiedAt)' /tmp/nodejs-head.json > /tmp/nodejs-head-stripped.json
+              jq 'del(.predicate.runDetails.metadata.verifiedAt)' build-provenance/nodejs-receipt.json > /tmp/nodejs-curr-stripped.json
+              if ! diff -q /tmp/nodejs-head-stripped.json /tmp/nodejs-curr-stripped.json > /dev/null 2>&1; then
+                MEANINGFUL_CHANGES=true
+              fi
+            else
+              MEANINGFUL_CHANGES=true  # New file
+            fi
+          fi
+
+          # Check container-receipt.json, ignoring invocationId, startedOn, and subject (image tag/digest)
+          if [[ -n "$(git status --porcelain build-provenance/container-receipt.json 2>/dev/null)" ]]; then
+            if git show HEAD:build-provenance/container-receipt.json > /tmp/container-head.json 2>/dev/null; then
+              jq 'del(.predicate.runDetails.metadata.invocationId, .predicate.runDetails.metadata.startedOn, .subject)' \
+                /tmp/container-head.json > /tmp/container-head-stripped.json
+              jq 'del(.predicate.runDetails.metadata.invocationId, .predicate.runDetails.metadata.startedOn, .subject)' \
+                build-provenance/container-receipt.json > /tmp/container-curr-stripped.json
+              if ! diff -q /tmp/container-head-stripped.json /tmp/container-curr-stripped.json > /dev/null 2>&1; then
+                MEANINGFUL_CHANGES=true
+              fi
+            else
+              MEANINGFUL_CHANGES=true  # New file
+            fi
+          fi
+
+          if [[ "$MEANINGFUL_CHANGES" == "true" ]]; then
+            echo "Meaningful changes detected. Fetching bot identity via API..."
             
             # Fetch the exact ID for the GitHub Actions bot via the Users API
             BOT_ID=$(gh api /users/github-actions%5Bbot%5D --jq '.id')
@@ -107,7 +150,7 @@ jobs:
               --base master \
               --head $BRANCH_NAME || true  # it's bad to ignore failure for initial create... but it may be a duplicate PR for the branch.
           else
-            echo "No changes to commit."
+            echo "No meaningful changes to commit (only noop fields changed)."
           fi
 
   # This job uses the official SLSA framework reusable workflow.
