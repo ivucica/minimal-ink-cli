@@ -8,6 +8,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ghcr.io/ivucica/minimal-ink-cli
+  VERSION: latest
 
 jobs:
   build-and-push:
@@ -25,6 +26,7 @@ jobs:
       attestations: write
       id-token: write
       pull-requests: write
+      security-events: write
 
     steps:
       - name: Checkout repository
@@ -66,6 +68,21 @@ jobs:
           PURE_DIGEST=$(echo $FULL_DIGEST | awk -F@ '{print $2}')
           
           echo "digest=$PURE_DIGEST" >> "$GITHUB_OUTPUT"
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          # This ensures we scan the OS packages (os-pkgs)
+          scanners: 'vuln,secret'
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+          category: 'container-scanning'
 
       - name: Attest Container Image to GHCR
         uses: actions/attest-build-provenance@v4
