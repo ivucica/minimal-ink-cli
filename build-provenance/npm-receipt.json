@@ -2,9 +2,9 @@
   "_type": "https://in-toto.io/Statement/v1",
   "subject": [
     {
-      "name": "docker://minimal-ink-cli:bd454d7",
+      "name": "docker://minimal-ink-cli:f9646af",
       "digest": {
-        "sha256": "e8483abb8cf3e5ba6b6e95ba447b2167ed2302939c43869cec30d27db8aacdcf"
+        "sha256": "a3e76662c67d8458893eac0aa05d67a22db0a98047b85f7a2aff99c60d7126d4"
       }
     }
   ],
