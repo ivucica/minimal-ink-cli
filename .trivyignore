@@ -1,0 +1,12 @@
+# CVE-2021-45261: patch - Invalid Pointer via another_hunk function (DoS)
+# Debian marks this "unimportant" with "Negligible security impact".
+# Status: (unfixed) in Debian unstable/sid; affects both 2.7.x AND 2.8-2.
+# See: https://security-tracker.debian.org/tracker/CVE-2021-45261
+#      https://savannah.gnu.org/bugs/?61685
+CVE-2021-45261
+
+# CVE-2011-4116: perl - File::Temp _is_safe does not properly handle symlinks
+# Debian marks this "unimportant"; unfixed since 2011 across all Debian releases.
+# See: https://security-tracker.debian.org/tracker/CVE-2011-4116
+#      https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=776268
+CVE-2011-4116
