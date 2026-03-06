@@ -3,7 +3,10 @@ set -e
 
 echo "==> Updating apt and installing base system dependencies..."
 apt-get update
-apt-get upgrade -y
+# full-upgrade (rather than upgrade) allows installing new packages and removing
+# obsolete ones, which is required for some security fixes that change dependency
+# graphs (apt-get upgrade silently skips those transitions).
+apt-get full-upgrade -y
 DEB_PACKAGES="curl git gnupg xz-utils"
 apt-get install -y $DEB_PACKAGES
 
@@ -73,6 +76,12 @@ echo "==> Extracting Node.js..."
 tar -xJf "${NODE_TAR}" -C /usr/local --strip-components=1
 rm "${NODE_TAR}" SHASUMS256.txt SHASUM_CHECK.txt
 
+echo "==> Upgrading npm to latest to patch vendored dependency vulnerabilities..."
+# The npm bundled with Node.js ships its own node_modules (cross-spawn, semver,
+# ws, etc.) that Trivy/Syft surfaces as individual CVEs. Upgrading npm replaces
+# those vendored copies with the latest fixed versions.
+npm install -g npm@latest
+
 echo "==> Creating application directory structure..."
 mkdir -p /app/src
 cd /app
@@ -82,8 +91,17 @@ npm init -y
 npm pkg set type="module"
 
 echo "==> Installing runtime and development dependencies..."
+# Remove any stale lockfile that could pin old, vulnerable package versions.
+# The container always builds fresh, but a leftover lockfile (e.g. if this
+# script is re-run) could otherwise cause npm to skip newer fixed versions.
+rm -f package-lock.json
 npm install ink react ink-text-input
 npm install --save-dev typescript @types/react @types/node
+
+echo "==> Patching vulnerable transitive dependencies..."
+# Fix any remaining vulnerabilities in the dependency tree that fall within
+# the semver ranges allowed by the direct dependencies.
+npm audit fix || true
 
 echo "==> Generating npm provenance receipt..."
 node -e '
