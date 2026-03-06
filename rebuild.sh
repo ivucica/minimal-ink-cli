@@ -91,6 +91,9 @@ echo "==> Generating SPDX SBOM predicate using Syft..."
 docker run --rm -v /var/run/docker.sock:/var/run/docker.sock anchore/syft:latest \
   packages docker:${IMAGE_NAME}:${VERSION} -o spdx-json > ./build-provenance/raw-spdx-sbom.json
 
+echo "==> Normalising PURL version encoding in SBOM..."
+python3 fix-purl-encoding.py ./build-provenance/raw-spdx-sbom.json
+
 # Use jq to wrap the raw SPDX JSON inside the in-toto Statement envelope
 jq --arg img "docker://${IMAGE_NAME}:${VERSION}" --arg digest "${IMAGE_DIGEST}" '{
   "_type": "https://in-toto.io/Statement/v1",
