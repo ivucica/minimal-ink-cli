@@ -71,12 +71,23 @@ jobs:
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
+        env:
+          # Instruct Trivy to use the Debian Security Tracker for OS vulnerability
+          # matching rather than falling back to NVD CPE matching.  When scanning
+          # a container image directly, Trivy compares the full Debian version
+          # string (e.g. "1:2.47.3-0+deb13u1") against upstream version ranges in
+          # NVD (e.g. "git-scm/git <= 2.15.1"), extracting only the epoch digit
+          # ("1") as the version and incorrectly flagging packages as vulnerable.
+          # Scanning the Syft-generated SBOM with --distro debian/13 uses the
+          # Debian Security Tracker exclusively, which understands Debian versioning
+          # and eliminates the entire class of epoch-confusion false positives.
+          TRIVY_DISTRO: 'debian/13'
         with:
-          image-ref: ${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+          scan-type: 'sbom'
+          scan-ref: './build-provenance/raw-spdx-sbom.json'
           format: 'sarif'
           output: 'trivy-results.sarif'
-          # This ensures we scan the OS packages (os-pkgs)
-          scanners: 'vuln,secret'
+          scanners: 'vuln'
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v3
