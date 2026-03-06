@@ -3,6 +3,7 @@ set -e
 
 echo "==> Updating apt and installing base system dependencies..."
 apt-get update
+apt-get upgrade -y
 DEB_PACKAGES="curl git gnupg xz-utils"
 apt-get install -y $DEB_PACKAGES
 
@@ -23,7 +24,7 @@ cat << EOF > /etc/provenance/deb-receipt.json
 EOF
 
 echo "==> Installing Node.js via official release tarball with hash verification..."
-NODE_VERSION="20.18.0"
+NODE_VERSION="22.14.0"
 NODE_ARCH="linux-x64"
 NODE_TAR="node-v${NODE_VERSION}-${NODE_ARCH}.tar.xz"
 
