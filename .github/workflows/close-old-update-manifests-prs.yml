@@ -47,10 +47,11 @@ jobs:
                 --field "branch=$BRANCH" \
                 --field "status=$STATUS" \
                 --jq '.workflow_runs[].id' 2>/dev/null || true)
-              for RUN_ID in $RUN_IDS; do
+              while IFS= read -r RUN_ID; do
+                [[ "$RUN_ID" =~ ^[0-9]+$ ]] || continue
                 echo "Canceling run $RUN_ID for branch $BRANCH (status: $STATUS)"
                 gh api -X POST "repos/$REPO/actions/runs/$RUN_ID/cancel" || true
-              done
+              done <<< "$RUN_IDS"
             done
 
             # Close the PR
