@@ -2,9 +2,9 @@
   "_type": "https://in-toto.io/Statement/v1",
   "subject": [
     {
-      "name": "docker://minimal-ink-cli:bd454d7",
+      "name": "docker://minimal-ink-cli:00874f7",
       "digest": {
-        "sha256": "e8483abb8cf3e5ba6b6e95ba447b2167ed2302939c43869cec30d27db8aacdcf"
+        "sha256": "f3ffa784919e806938a3a10b760639ebf8e40eccf9deac8caa12c33dc1a242ea"
       }
     }
   ],
@@ -18,9 +18,9 @@
         }
       },
       {
-        "uri": "pkg:npm/@types/node@25.3.5",
+        "uri": "pkg:npm/@types/node@25.4.0",
         "digest": {
-          "sha512": "a17f31ae1be98b24424241b5305721074f5ff9c5dfb602176f76bb5146b8637c299993f0e6dc991932d686511238bab546aea80e573c9e9554dbff71882b9730"
+          "sha512": "f702e9a1e5ae06571b069398dd79b34931b7a2c701eb18c1104b67fa96174df8725e12310b916c05eaf6293a29065bca1225bd975de9a3d7eaf92258ff996487"
         }
       },
       {
