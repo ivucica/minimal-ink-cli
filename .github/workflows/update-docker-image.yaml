@@ -44,6 +44,17 @@ jobs:
           chmod +x rebuild.sh
           ./rebuild.sh
 
+      # If we did not build using rebuild.sh and push using docker push,
+      # we could also create an arch matrix, then build+push like so (this shows how to set description too):
+      # - name: Build and push Docker image
+      #   uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+      #   with:
+      #     context: .
+      #     file: ./Dockerfile
+      #     platforms: ${{ matrix.platforms }}
+      #     push: true
+      #     outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=My multi-arch image
+
       - name: Submit SBOM to GitHub Dependency Graph
         uses: advanced-security/spdx-dependency-submission-action@v0.2.0
         with:
