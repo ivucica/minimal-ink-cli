@@ -1,0 +1,3 @@
+build-provenance/**/*.json text linguist-generated=true gitlab-generated
+package.json text linguist-generated=true gitlab-generated
+package-lock.json text linguist-generated=true gitlab-generated
