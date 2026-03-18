@@ -40,6 +40,17 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run local rebuild script
+        # rebuild.sh orchestrates the full pipeline by delegating to numbered
+        # sub-scripts in scripts/:
+        #   25-docker-build.sh             – multi-stage Docker build (builder +
+        #                                    runtime) using debian:trixie-slim
+        #   30-extract-provenance.sh       – copy provenance receipts and npm
+        #                                    manifests out of the built image
+        #   35-generate-slsa-provenance.sh – write SLSA Provenance container
+        #                                    receipt
+        #   40-generate-sbom.sh            – Syft SPDX SBOM (runtime image only,
+        #                                    so all listed packages are runtime deps)
+        #   45-generate-receipts.sh        – write test-result receipt
         run: |
           chmod +x rebuild.sh
           ./rebuild.sh
