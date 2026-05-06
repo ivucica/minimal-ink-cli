@@ -2,9 +2,9 @@
   "_type": "https://in-toto.io/Statement/v1",
   "subject": [
     {
-      "name": "docker://minimal-ink-cli:00874f7",
+      "name": "docker://minimal-ink-cli:ff79e12",
       "digest": {
-        "sha256": "f3ffa784919e806938a3a10b760639ebf8e40eccf9deac8caa12c33dc1a242ea"
+        "sha256": "13dd11d98246f78ce7d49a1dcbb2c9be2d795e4f028956d4ef81cf2c36654e5f"
       }
     }
   ],
@@ -12,15 +12,15 @@
   "predicate": {
     "resolvedDependencies": [
       {
-        "uri": "pkg:npm/@alcalzone/ansi-tokenize@0.2.5",
+        "uri": "pkg:npm/@alcalzone/ansi-tokenize@0.3.0",
         "digest": {
-          "sha512": "dcd5ff3294ddae88b468acf5df803a442d866f689754408de106805e7bc2231c489b70b70150759a451ef0d69a8b2bcea437ecaea5a162d8fe43a6bad91ad3b3"
+          "sha512": "a7e08c289f771c598b9235ca9578951a531012e45be87d0ca24052c14b17f92e81457f1e5799da159a502457c91e34596341e69eacb5febe945a5df1fb5f7360"
         }
       },
       {
-        "uri": "pkg:npm/@types/node@25.4.0",
+        "uri": "pkg:npm/@types/node@25.6.0",
         "digest": {
-          "sha512": "f702e9a1e5ae06571b069398dd79b34931b7a2c701eb18c1104b67fa96174df8725e12310b916c05eaf6293a29065bca1225bd975de9a3d7eaf92258ff996487"
+          "sha512": "faa21844a74d609c18def44264c7496cf2c902d1a3401b9dcd9cddcf04189043d077e3c91a2c542f941fbc22c36942e82eff91853dcb0e4c047ca6809204a635"
         }
       },
       {
@@ -60,9 +60,9 @@
         }
       },
       {
-        "uri": "pkg:npm/cli-boxes@3.0.0",
+        "uri": "pkg:npm/cli-boxes@4.0.1",
         "digest": {
-          "sha512": "fe5cc6a4458bffc3df23406604e3d1c29d1cff014d5f545d50c2f78cafd1712040f53f26643750a6a6012ad0854ce7d06f03ea5843a98ea5be1676b2734f7af6"
+          "sha512": "e483a7fa370210712b698a2504fb3fb13e01c5809eda71e0dfbe0e3e222d0753bde8a645b1e4b682d854e2dc326337837057b0e0369433fc707390507f4f0927"
         }
       },
       {
@@ -72,9 +72,9 @@
         }
       },
       {
-        "uri": "pkg:npm/cli-truncate@5.2.0",
+        "uri": "pkg:npm/cli-truncate@6.0.0",
         "digest": {
-          "sha512": "c51c2f20e306adf3809ccd4962da90226b9a36d0c4bfdbfaa08600b382c81f04e229e7bcbb0bc88b7eb78a0b2c382d0ee54d388b802510db3bf4b40bbbdb4433"
+          "sha512": "dfe60a21416ca210fd308a0e14f14195d8c09677c29820dca9ee9a60616a9434d12a0f34a78c20df92fe8fcdd043ade23a529171c1246e7f08b8cfbe1ec8048c"
         }
       },
       {
@@ -96,21 +96,15 @@
         }
       },
       {
-        "uri": "pkg:npm/emoji-regex@10.6.0",
-        "digest": {
-          "sha512": "b68508f38612e589b15b6d7d7ab9e2583d022153a8e3ac46282a2578d41180ecc3a2b8018b5bf80fbd7f385ce00fd18ed9418a22fd42dd2a7c0c09f4fa3e70ec"
-        }
-      },
-      {
         "uri": "pkg:npm/environment@1.1.0",
         "digest": {
           "sha512": "c54b683e432081bcf430fc8f8885abd4aa7869e5898c367a48cbd44618a68dd660b11b83a65179fecf617201a1c97321b3eeafa67ba8899da4162bb714c9d2f1"
         }
       },
       {
-        "uri": "pkg:npm/es-toolkit@1.45.1",
+        "uri": "pkg:npm/es-toolkit@1.46.1",
         "digest": {
-          "sha512": "fe38683a3fc5c7e03e208c8334ebcedd322d1a694c2a1b57f084801ca13dd1ce1bfe4d6da9aa8467eb94a9fa54f033275b9720349bfad3acd2e798c6bf36b45f"
+          "sha512": "e5e36d5ceb37b5b7f15ce8f4e2d8e3b1e79691159aa028dd108fbde83830cd9a1ee9cf63b8be3da579730054c8ef66960bd63ca7bd7af20e9720a8e1ee4ea9c9"
         }
       },
       {
@@ -132,9 +126,9 @@
         }
       },
       {
-        "uri": "pkg:npm/ink@6.8.0",
+        "uri": "pkg:npm/ink@7.0.2",
         "digest": {
-          "sha512": "b1b97545d2ce8243bd8ac2b8d9609994908537d85bfbeb17f5db2494ebdf775610ddb43602216ed7643ab4596bd07bc452fceb6899ed4020a97c4a147bd0d2cc"
+          "sha512": "727904d92b030bf822789f810fcfa05a95eb64f3089efeda80160de6070a565419629f8829afc528ce5ba75388b89169dd922e44aed9371638319477b54cf27d"
         }
       },
       {
@@ -180,9 +174,9 @@
         }
       },
       {
-        "uri": "pkg:npm/react@19.2.4",
+        "uri": "pkg:npm/react@19.2.5",
         "digest": {
-          "sha512": "f677e9da16290b03a300dfbc4d914686d584c20bd61d7a84487f2a4fcf404ff956925a4b38ddb62dcf2912d9e9b19cfb5666b069b494d200a39e3f1a0b47ae1d"
+          "sha512": "9655092f3cf5cd3501aec92dda9c1980bab9f407a689f21fb70e1a07b2713aa7f51d8d850da183c60c2900f5731d4d6475669b1fb15ab8fe22d6811e7abd9608"
         }
       },
       {
@@ -210,9 +204,9 @@
         }
       },
       {
-        "uri": "pkg:npm/slice-ansi@8.0.0",
+        "uri": "pkg:npm/slice-ansi@9.0.0",
         "digest": {
-          "sha512": "b2dc41cabd76a1e78ec98d8196f893350958579c4e8f8ec68ab3ebe32035844f490adc5f40dd3eb556e4c700ad603416844296147b042b8f0e460e63ae8b8202"
+          "sha512": "48eff78982f94b75b9ecb2c49e2b1c3863d980ea9950f0b1e9dddd07ee7607cd322745ecb73b02fde57c827038b4cdcc1c3acacfe3821522cd8ecc1d482fbf6c"
         }
       },
       {
@@ -222,9 +216,9 @@
         }
       },
       {
-        "uri": "pkg:npm/string-width@8.2.0",
+        "uri": "pkg:npm/string-width@8.2.1",
         "digest": {
-          "sha512": "ea124f43c3745743f748d98fea1d89f7d44bbb3ad6cf682f4fb5672b9b4abeb36a268c92f56e3f15bf26a37d5488fbf2d34cfb0d05e43f686728155abfbead87"
+          "sha512": "20868fd20de2cbd0b2cb5f30dccf5871a0ee76e8c40151cab776b7409835facaffa17f7a4db68652e6c6d212720a30814e1147fad169708ca8507527d6881a2c"
         }
       },
       {
@@ -246,21 +240,21 @@
         }
       },
       {
-        "uri": "pkg:npm/type-fest@5.4.4",
+        "uri": "pkg:npm/type-fest@5.6.0",
         "digest": {
-          "sha512": "2674ebcc6bbeccf577697214867c96263e33ff08a032c7586a318b2186a4ab2396d673e59735c425e7b44106c78fe093210b571a5023b8ad1463edb14f28d503"
+          "sha512": "f19887166f75a2b6d201ed8f480892541564a35f296e16e207753d1a0952cc5ff3086911fabc691f1eac10c0949b89316382e30c85068027d432dc1f65f8df50"
         }
       },
       {
-        "uri": "pkg:npm/typescript@5.9.3",
+        "uri": "pkg:npm/typescript@6.0.3",
         "digest": {
-          "sha512": "8e5d6f6733c38a72ebf5e52ddc9feded5e8580d130f508ef04f772b33f4a7d00c3e357d0ac2d98e2f290762694a454f86d795bd511e12e9a7cc2d9ba3394e04b"
+          "sha512": "cb64efbb14993c3c906a490544f6472859be28a56a222b1d83dfc26709bd7edbca5cb3fc3515a3dfcfce0e335baf8dd2b285ea36e022b047f519d0b1a9671d07"
         }
       },
       {
-        "uri": "pkg:npm/undici-types@7.18.2",
+        "uri": "pkg:npm/undici-types@7.19.2",
         "digest": {
-          "sha512": "02cb82cdf7c61c9c9b49a46b9abe5e1ebf359b0254de48f0e8cfaea6b5af09788d78df52386c10dc99fc8dbf26dd9ea2cd58249e7d51d054c21003f642b2d8ff"
+          "sha512": "a985675793849b6016f1c24c0a9755db4083c9a3778340230e53867f5396e22683131f0cc1db42854a78ceee07d153f79c3445ffc44a587f883e9f6e5b460666"
         }
       },
       {
@@ -270,21 +264,15 @@
         }
       },
       {
-        "uri": "pkg:npm/wrap-ansi@9.0.2",
+        "uri": "pkg:npm/wrap-ansi@10.0.0",
         "digest": {
-          "sha512": "e3602d9a0aa357e5f556974e7f24c6398462d3fceca0baad5d07244e6a937b26d3f810c86ccfc6bb1a3bc77a44dafb69af5a24eb146a33d3a905ef89ca8ab2c3"
+          "sha512": "48672f83cd1fd30532dbf7d7112d7d7de1cccfc1342685efdae3601cebb80e08b63ab0b2d65ab0158109cf504b6c32347b18cf31efd977367f6291840811bf69"
         }
       },
       {
-        "uri": "pkg:npm/string-width@7.2.0",
+        "uri": "pkg:npm/ws@8.20.0",
         "digest": {
-          "sha512": "b6c693224296f5be0df80123f92540f96849cd5effccc85c4aeefc98b2964a4edc5cc3921ec04a15652cd1f5b0abc4322b73202414115fa19b8b89186ddbc691"
-        }
-      },
-      {
-        "uri": "pkg:npm/ws@8.19.0",
-        "digest": {
-          "sha512": "6e5013da68ce1088b4673aee25f2216f79e9b3be0f4564c2cf5223825584129425e574bf50d6a66babb6feb8c59030e8baaaf82faeebcbed5a18800b5625a30e"
+          "sha512": "b00b7c06180d6f30ad8066edd8ec66a6eaf23badd9a0393fb2a681ff39d09bde13e1f084b32ff257eec2742d64261394f656e800453b47792abaec9c0e889b54"
         }
       },
       {
