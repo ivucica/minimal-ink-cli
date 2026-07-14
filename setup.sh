@@ -27,7 +27,7 @@ cat << EOF > /etc/provenance/deb-receipt.json
 EOF
 
 echo "==> Installing Node.js via official release tarball with hash verification..."
-NODE_VERSION="22.14.0"
+NODE_VERSION="22.23.1"
 NODE_ARCH="linux-x64"
 NODE_TAR="node-v${NODE_VERSION}-${NODE_ARCH}.tar.xz"
 
