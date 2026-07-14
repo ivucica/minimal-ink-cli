@@ -93,6 +93,11 @@ jobs:
           # Debian Security Tracker exclusively, which understands Debian versioning
           # and eliminates the entire class of epoch-confusion false positives.
           TRIVY_DISTRO: 'debian/13'
+          # Use OpenVEX statements to declare certain vulnerabilities inapplicable.
+          # The .vex/openvex.json file provides structured justifications for CVEs
+          # that Debian marks "unimportant" and that are not reachable at runtime.
+          # .trivyignore is retained as a legacy fallback.
+          TRIVY_VEX: '.vex/openvex.json'
         with:
           scan-type: 'sbom'
           scan-ref: './build-provenance/raw-spdx-sbom.json'
@@ -102,6 +107,7 @@ jobs:
           # Suppress permanently-unfixable CVEs that Debian marks "unimportant":
           #   CVE-2021-45261 (patch)  - negligible impact, will never be fixed upstream
           #   CVE-2011-4116  (perl)   - File::Temp symlink issue, unfixed since 2011
+          # .trivyignore is kept alongside .vex/openvex.json for legacy compatibility.
           trivyignores: .trivyignore
 
       - name: Fix SARIF artifact locations for SBOM scan
