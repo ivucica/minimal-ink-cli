@@ -7,7 +7,7 @@ apt-get update
 # obsolete ones, which is required for some security fixes that change dependency
 # graphs (apt-get upgrade silently skips those transitions).
 apt-get full-upgrade -y
-DEB_PACKAGES="curl git gnupg xz-utils"
+DEB_PACKAGES="curl gnupg xz-utils"
 apt-get install -y $DEB_PACKAGES
 
 echo "==> Generating deb packages provenance receipt..."
