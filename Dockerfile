@@ -64,8 +64,7 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends libstdc++6 \
  # gzip is only needed in the builder stage for Node.js extraction.
  && apt-get purge -y --auto-remove --allow-remove-essential gzip \
- # tar is only needed in the builder stage for Node.js extraction.
- && apt-get purge -y --auto-remove --allow-remove-essential tar \
+ # tar cannot be removed easily despite its vulnerabilities, it is used by dpkg \
  && rm -rf /var/lib/apt/lists/*
 
 # Copy only the node binary – npm, npx and the rest of the Node.js toolchain
