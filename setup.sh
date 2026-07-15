@@ -28,8 +28,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "==> [setup.sh] Starting build environment setup..."
 
+<<<<<<< HEAD
 # Install build-time system dependencies and record deb provenance.
 "${SCRIPT_DIR}/scripts/00-install-system-deps.sh"
+=======
+echo "==> Installing Node.js via official release tarball with hash verification..."
+NODE_VERSION="22.23.1"
+NODE_ARCH="linux-x64"
+NODE_TAR="node-v${NODE_VERSION}-${NODE_ARCH}.tar.xz"
+>>>>>>> origin/master
 
 # Download, verify, and install Node.js; record nodejs provenance.
 "${SCRIPT_DIR}/scripts/05-install-nodejs.sh"

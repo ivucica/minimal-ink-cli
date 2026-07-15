@@ -1,0 +1,34 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "https://github.com/ivucica/minimal-ink-cli/blob/master/.vex/openvex.json",
+  "author": "ivucica/minimal-ink-cli maintainers",
+  "role": "Document Author",
+  "timestamp": "2026-07-14T17:23:22Z",
+  "version": 1,
+  "statements": [
+    {
+      "vulnerability": {
+        "name": "CVE-2021-45261",
+        "description": "Invalid Pointer via another_hunk function (DoS) in GNU patch"
+      },
+      "products": [
+        {"@id": "pkg:deb/debian/patch@2.8-2"}
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "The patch binary is installed in the container image but is never invoked by the application at runtime. Debian marks this CVE as 'unimportant' with negligible security impact; it remains unfixed in Debian unstable/sid for both 2.7.x and 2.8-2."
+    },
+    {
+      "vulnerability": {
+        "name": "CVE-2011-4116",
+        "description": "File::Temp _is_safe does not properly handle symlinks in perl"
+      },
+      "products": [
+        {"@id": "pkg:deb/debian/perl@5.40.1-6"}
+      ],
+      "status": "not_affected",
+      "justification": "vulnerable_code_not_in_execute_path",
+      "impact_statement": "Perl and its File::Temp module are not used by the application. Debian marks this CVE as 'unimportant'; it has been unfixed across all Debian releases since 2011."
+    }
+  ]
+}
