@@ -1,13 +1,13 @@
 {
   "_type": "https://in-toto.io/Statement/v1",
-  "subject": [{"name": "docker://minimal-ink-cli:cb47c00", "digest": {"sha256": "89af7db21c245446a02390daadd0ced17a366f99e99be7dc1050948cda2ebfaa"}}],
+  "subject": [{"name": "docker://minimal-ink-cli:5b16746", "digest": {"sha256": "858b522ebdc5fbd129732049354e6591978aea1824350d1ae03423ed0514bf96"}}],
   "predicateType": "https://in-toto.io/attestation/test-result/v1",
   "predicate": {
     "result": "PASSED",
-    "timestamp": "2026-07-14T17:05:31Z",
+    "timestamp": "2026-07-15T02:03:42Z",
     "testExecution": {
       "testFramework": "tsc",
-      "testInvocationId": "build-only:29352312837"
+      "testInvocationId": "build-only:29383158548"
     }
   }
 }
