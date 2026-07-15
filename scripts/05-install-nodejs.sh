@@ -13,15 +13,15 @@
 #
 # Required environment variables: (none – all have safe defaults)
 # Optional environment variables:
-#   NODE_VERSION   – Node.js release to install, e.g. "22.14.0"
-#                    default: "22.14.0"
+#   NODE_VERSION   – Node.js release to install, e.g. "22.23.1"
+#                    default: "22.23.1"
 #   NODE_ARCH      – OS/architecture string matching the tarball name
 #                    default: "linux-x64"
 #   PROVENANCE_DIR – directory in which to write nodejs-receipt.json
 #                    default: /etc/provenance
 set -euo pipefail
 
-NODE_VERSION="${NODE_VERSION:-22.14.0}"
+NODE_VERSION="${NODE_VERSION:-22.23.1}"
 NODE_ARCH="${NODE_ARCH:-linux-x64}"
 PROVENANCE_DIR="${PROVENANCE_DIR:-/etc/provenance}"
 
