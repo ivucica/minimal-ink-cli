@@ -1,3 +1,95 @@
+# minimal-ink-cli
+
+A minimal CLI example built with [Ink](https://github.com/vadimdemedes/ink)
+and React for building interactive terminal UIs.  The project also demonstrates
+a security-conscious container build with SLSA provenance, SPDX SBOM, and
+multi-stage Docker builds.
+
+---
+
+## Build overview
+
+The build is split into two Docker stages and a set of numbered shell scripts
+so that each concern is independently testable and documented.
+
+### Multi-stage Dockerfile
+
+| Stage | Base image | Purpose |
+|---|---|---|
+| `builder` | `debian:trixie-slim` | Install build tools, compile TypeScript |
+| `runtime` | `debian:trixie-slim` | Run the compiled CLI with minimal surface |
+
+Both stages pin to **Debian Trixie (13)** (`debian:trixie-slim`) so the base
+layer is reusable across projects and won't silently upgrade to Debian 14 when
+it becomes stable.
+
+The runtime stage contains **only**:
+- the `node` binary (copied from the builder)
+- `libstdc++6` (the one Debian package needed to run the node binary)
+- compiled `dist/` tree
+- pruned runtime `node_modules/` (devDependencies removed via `npm prune --production`)
+- `package.json` (for Node.js ESM module-type resolution)
+- provenance receipts in `/etc/provenance/`
+
+Build-time tools (`curl`, `xz-utils`, `npm`, `tsc`, `@types/*`, etc.) never
+reach the runtime image, reducing the potential attack surface.
+
+### Entry-point scripts
+
+| Script | Stage | Purpose |
+|---|---|---|
+| `setup.sh` | builder (inside Docker) | Calls scripts/00–15 to set up the build environment |
+| `rebuild.sh` | host / CI | Calls scripts/25–45 to build the image and generate provenance |
+
+### `scripts/` — numbered sub-scripts
+
+Each script is self-contained and receives configuration exclusively via
+environment variables.  Required variables use the `${VAR:?}` syntax (the
+build fails immediately with a clear message if they are unset); optional
+variables use `${VAR:-default}` to declare their defaults inline.
+
+#### Inside the Docker builder stage (called by `setup.sh`)
+
+| Script | What it does |
+|---|---|
+| `scripts/00-install-system-deps.sh` | `apt-get update && full-upgrade`, install build-time Debian packages (`curl xz-utils`), write `deb-receipt.json` |
+| `scripts/05-install-nodejs.sh` | Download the official Node.js tarball, verify SHA-256, extract to `/usr/local`, upgrade npm, write `nodejs-receipt.json` |
+| `scripts/10-setup-app.sh` | Create `/app`, `npm init`, install runtime + dev npm deps, `npm audit fix`, write `npm-receipt.json` |
+| `scripts/15-configure-typescript.sh` | Write `tsconfig.json` (ES2022, NodeNext, JSX react) |
+| `scripts/20-build-app.sh` | Run `npx tsc` to compile TypeScript/JSX into `dist/` |
+
+#### On the host / in CI (called by `rebuild.sh`)
+
+| Script | What it does |
+|---|---|
+| `scripts/25-docker-build.sh` | Pull base image, build the multi-stage Docker image with OCI annotation labels |
+| `scripts/30-extract-provenance.sh` | `docker create`, copy `/etc/provenance/` and npm manifests to host, `docker rm` |
+| `scripts/35-generate-slsa-provenance.sh` | Write `container-receipt.json` (SLSA Provenance v1 in-toto Statement) |
+| `scripts/40-generate-sbom.sh` | Run Syft against the **runtime** image (runtime packages only), normalise PURL encoding, wrap in in-toto envelope |
+| `scripts/45-generate-receipts.sh` | Write `test-receipt.json` (tsc quality gate result) |
+
+### SBOM and build-time vs runtime dependency distinction
+
+Because Syft scans only the **runtime** stage of the multi-stage Docker build,
+every package in the generated SPDX SBOM (`raw-spdx-sbom.json`) is a runtime
+dependency by definition.  Build-time packages (`curl`, `xz-utils`, `gcc`,
+`typescript`, `@types/*`, etc.) are naturally absent from the SBOM — no
+explicit SPDX relationship annotations are needed to express the distinction.
+
+---
+
+## Local build
+
+```bash
+# Build the Docker image and generate all provenance artefacts:
+./rebuild.sh
+
+# Run the compiled CLI interactively:
+docker run --rm -it minimal-ink-cli
+```
+
+---
+
 Here is a thread for a question I asked from DeepWiki:
 
 ======
