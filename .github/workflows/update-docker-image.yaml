@@ -44,6 +44,17 @@ jobs:
           chmod +x rebuild.sh
           ./rebuild.sh
 
+      # If we did not build using rebuild.sh and push using docker push,
+      # we could also create an arch matrix, then build+push like so (this shows how to set description too):
+      # - name: Build and push Docker image
+      #   uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+      #   with:
+      #     context: .
+      #     file: ./Dockerfile
+      #     platforms: ${{ matrix.platforms }}
+      #     push: true
+      #     outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=My multi-arch image
+
       - name: Submit SBOM to GitHub Dependency Graph
         uses: advanced-security/spdx-dependency-submission-action@v0.2.0
         with:
@@ -82,6 +93,11 @@ jobs:
           # Debian Security Tracker exclusively, which understands Debian versioning
           # and eliminates the entire class of epoch-confusion false positives.
           TRIVY_DISTRO: 'debian/13'
+          # Use OpenVEX statements to declare certain vulnerabilities inapplicable.
+          # The .vex/openvex.json file provides structured justifications for CVEs
+          # that Debian marks "unimportant" and that are not reachable at runtime.
+          # .trivyignore is retained as a legacy fallback.
+          TRIVY_VEX: '.vex/openvex.json'
         with:
           scan-type: 'sbom'
           scan-ref: './build-provenance/raw-spdx-sbom.json'
@@ -91,7 +107,70 @@ jobs:
           # Suppress permanently-unfixable CVEs that Debian marks "unimportant":
           #   CVE-2021-45261 (patch)  - negligible impact, will never be fixed upstream
           #   CVE-2011-4116  (perl)   - File::Temp symlink issue, unfixed since 2011
+          # .trivyignore is kept alongside .vex/openvex.json for legacy compatibility.
           trivyignores: .trivyignore
+
+      - name: Fix SARIF artifact locations for SBOM scan
+        # When Trivy scans an SBOM, results for embedded components (e.g. gobinary)
+        # may have empty or missing artifactLocation.uri values. GitHub Code Scanning
+        # rejects such SARIF files with "locationFromSarifResult: expected artifact
+        # location". This step patches any result missing a valid URI to point at the
+        # SBOM file itself so the upload succeeds.
+        run: |
+          python3 - <<'PYEOF'
+          import json
+          import os
+          import sys
+
+          sarif_path = 'trivy-results.sarif'
+          if not os.path.exists(sarif_path):
+              print(f'Error: {sarif_path} not found - was the Trivy scan step successful?', file=sys.stderr)
+              sys.exit(1)
+
+          try:
+              with open(sarif_path) as f:
+                  sarif = json.load(f)
+          except (OSError, json.JSONDecodeError) as e:
+              print(f'Error reading {sarif_path}: {e}', file=sys.stderr)
+              sys.exit(1)
+
+          fallback_uri = 'build-provenance/raw-spdx-sbom.json'
+          fallback_location = {
+              'physicalLocation': {
+                  'artifactLocation': {
+                      'uri': fallback_uri,
+                      'uriBaseId': '%SRCROOT%',
+                  }
+              }
+          }
+
+          for run in sarif.get('runs', []):
+              for result in run.get('results', []):
+                  locations = result.get('locations') or []
+                  if not locations:
+                      result['locations'] = [fallback_location]
+                  else:
+                      for loc in locations:
+                          physical_location = loc.setdefault('physicalLocation', {})
+                          artifact_location = physical_location.setdefault('artifactLocation', {})
+                          if not artifact_location.get('uri'):
+                              artifact_location['uri'] = fallback_uri
+                              artifact_location.setdefault('uriBaseId', '%SRCROOT%')
+
+          tmp_path = sarif_path + '.tmp'
+          try:
+              with open(tmp_path, 'w') as f:
+                  json.dump(sarif, f, indent=2)
+              os.replace(tmp_path, sarif_path)
+          except OSError as e:
+              print(f'Error writing patched SARIF: {e}', file=sys.stderr)
+              print(f'Cleaning up temporary file: {tmp_path}', file=sys.stderr)
+              try:
+                  os.unlink(tmp_path)
+              except FileNotFoundError:
+                  pass
+              sys.exit(1)
+          PYEOF
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v4

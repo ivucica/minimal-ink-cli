@@ -2,9 +2,9 @@
   "_type": "https://in-toto.io/Statement/v1",
   "subject": [
     {
-      "name": "node-v22.14.0-linux-x64.tar.xz",
+      "name": "node-v22.23.1-linux-x64.tar.xz",
       "digest": {
-        "sha256": "69b09dba5c8dcb05c4e4273a4340db1005abeafe3927efda2bc5b249e80437ec"
+        "sha256": "9749e988f437343b7fa832c69ded82a312e41a03116d766797ac14f6f9eee578"
       }
     }
   ],
@@ -13,13 +13,13 @@
     "buildDefinition": {
       "buildType": "https://nodejs.org/release",
       "externalParameters": {
-        "sourceUrl": "https://nodejs.org/dist/v22.14.0/node-v22.14.0-linux-x64.tar.xz",
-        "version": "22.14.0"
+        "sourceUrl": "https://nodejs.org/dist/v22.23.1/node-v22.23.1-linux-x64.tar.xz",
+        "version": "22.23.1"
       }
     },
     "runDetails": {
       "metadata": {
-        "verifiedAt": "2026-05-06T13:27:25Z"
+        "verifiedAt": "2026-07-14T17:05:56Z"
       }
     }
   }
