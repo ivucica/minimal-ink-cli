@@ -3,10 +3,9 @@
 #
 # Purpose: Update the Debian package index, apply all available upgrades, and
 # install the minimal set of Debian packages required at BUILD TIME only.
-# These packages (curl, git, gnupg, xz-utils) are used in subsequent build
-# steps to download and extract the Node.js tarball and verify signatures.
-# They are NOT copied into the runtime image, so they contribute zero attack
-# surface to the final container.
+# These packages (curl, gnupg, xz-utils) are used in subsequent build steps
+# to download and extract the Node.js tarball.  They are NOT copied into the
+# runtime image, so they contribute zero attack surface to the final container.
 #
 # After installing, the script records every explicitly requested package and
 # its exact Debian version in an in-toto / SLSA provenance receipt so that
@@ -15,12 +14,12 @@
 # Required environment variables: (none – all have safe defaults)
 # Optional environment variables:
 #   DEB_PACKAGES   – space-separated list of packages to install
-#                    default: "curl git gnupg xz-utils"
+#                    default: "curl gnupg xz-utils"
 #   PROVENANCE_DIR – directory in which to write deb-receipt.json
 #                    default: /etc/provenance
 set -euo pipefail
 
-DEB_PACKAGES="${DEB_PACKAGES:-curl git gnupg xz-utils}"
+DEB_PACKAGES="${DEB_PACKAGES:-curl gnupg xz-utils}"
 PROVENANCE_DIR="${PROVENANCE_DIR:-/etc/provenance}"
 
 echo "==> [00] Updating apt index and applying full-upgrade..."
