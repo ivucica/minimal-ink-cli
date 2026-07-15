@@ -2,9 +2,9 @@
   "_type": "https://in-toto.io/Statement/v1",
   "subject": [
     {
-      "name": "docker://minimal-ink-cli:cb47c00",
+      "name": "docker://minimal-ink-cli:8515dfe",
       "digest": {
-        "sha256": "89af7db21c245446a02390daadd0ced17a366f99e99be7dc1050948cda2ebfaa"
+        "sha256": "57ab50e949dde5479f95d867d26d587282bbb28245840163ca277cb673f480da"
       }
     }
   ],
@@ -23,8 +23,8 @@
     },
     "runDetails": {
       "metadata": {
-        "invocationId": "local-build-cb47c00",
-        "startedOn": "2026-07-14T17:05:31Z"
+        "invocationId": "local-build-8515dfe",
+        "startedOn": "2026-07-15T02:06:33Z"
       }
     }
   }
