@@ -57,6 +57,7 @@ LABEL org.opencontainers.image.description="A minimal CLI example using Ink and 
 RUN apt-get update \
  && apt-get full-upgrade -y --no-install-recommends \
  && apt-get install -y --no-install-recommends libstdc++6 \
+ && apt-get purge -y --auto-remove gzip \
  && rm -rf /var/lib/apt/lists/*
 
 # Copy only the node binary – npm, npx and the rest of the Node.js toolchain
