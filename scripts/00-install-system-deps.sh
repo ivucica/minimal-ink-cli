@@ -34,6 +34,10 @@ echo "==> [00] Installing build-time system dependencies: ${DEB_PACKAGES}..."
 # shellcheck disable=SC2086  # intentional word-splitting on DEB_PACKAGES
 apt-get install -y --no-install-recommends ${DEB_PACKAGES}
 
+echo "==> [00] Installing ca-certificates needed by curl..."
+apt-get install -y --no-install-recommends --reinstall ca-certificates
+update-ca-certificates
+
 echo "==> [00] Generating deb packages provenance receipt..."
 mkdir -p "${PROVENANCE_DIR}"
 # Build a JSON array of PURL entries for every explicitly installed package.
