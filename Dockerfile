@@ -39,6 +39,11 @@ RUN /build/scripts/20-build-app.sh
 # carried forward into the runtime image.
 RUN npm prune --production
 
+# The TypeScript compiler is build-only and not needed at runtime. Remove the
+# compiler package and its platform binary explicitly so they cannot be shipped
+# in the runtime image.
+RUN rm -rf /app/node_modules/typescript /app/node_modules/@typescript/typescript-linux-x64
+
 # =============================================================================
 # STAGE 2 – runtime
 # =============================================================================
