@@ -22,9 +22,20 @@
 # changes do not invalidate the expensive npm install layer above.
 set -euo pipefail
 
+<<<<<<< HEAD
 # Resolve the directory that contains this script so sub-scripts can be
 # found regardless of the working directory from which setup.sh is called.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+=======
+echo "==> Updating apt and installing base system dependencies..."
+apt-get update
+# full-upgrade (rather than upgrade) allows installing new packages and removing
+# obsolete ones, which is required for some security fixes that change dependency
+# graphs (apt-get upgrade silently skips those transitions).
+apt-get full-upgrade -y
+DEB_PACKAGES="curl gnupg xz-utils"
+apt-get install -y $DEB_PACKAGES
+>>>>>>> origin/master
 
 echo "==> [setup.sh] Starting build environment setup..."
 
