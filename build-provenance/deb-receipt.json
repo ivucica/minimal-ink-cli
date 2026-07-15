@@ -1,6 +1,6 @@
 {
   "_type": "https://in-toto.io/Statement/v1",
-  "subject": [{"name": "docker://minimal-ink-cli:cb47c00", "digest": {"sha256": "89af7db21c245446a02390daadd0ced17a366f99e99be7dc1050948cda2ebfaa"}}],
+  "subject": [{"name": "docker://minimal-ink-cli:7de8ef3", "digest": {"sha256": "22277f6e86f64106624845e3840d476045784a82e8008ff1d188d0063f68b62b"}}],
   "predicateType": "https://slsa.dev/provenance/v1",
   "predicate": { "resolvedDependencies": [         {"uri": "pkg:deb/debian/adduser@3.152?arch=all"},
         {"uri": "pkg:deb/debian/apt@3.0.3?arch=amd64"},
