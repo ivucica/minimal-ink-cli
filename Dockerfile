@@ -57,6 +57,8 @@ LABEL org.opencontainers.image.description="A minimal CLI example using Ink and 
 RUN apt-get update \
  && apt-get full-upgrade -y --no-install-recommends \
  && apt-get install -y --no-install-recommends libstdc++6 \
+ # gzip is only needed in the builder stage for Node.js extraction.
+ && apt-get purge -y --auto-remove gzip \
  # tar is only needed in the builder stage for Node.js extraction.
  && apt-get purge -y --auto-remove tar \
  && rm -rf /var/lib/apt/lists/*
