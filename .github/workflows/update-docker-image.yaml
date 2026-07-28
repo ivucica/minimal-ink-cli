@@ -275,6 +275,7 @@ jobs:
             git push --force origin $BRANCH_NAME
             
             # Create the Pull Request via gh cli
+            # Alternative: action peter-evans/create-pull-request@v8
             gh pr create \
               --title "chore: update provenance and package manifests" \
               --body "Automatically generated PR to update SLSA provenance receipts, \`package.json\`, and \`package-lock.json\` from workflow run ${GITHUB_RUN_ID}." \
