@@ -67,7 +67,7 @@ jobs:
       #     outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=My multi-arch image
 
       - name: Submit SBOM to GitHub Dependency Graph
-        uses: advanced-security/spdx-dependency-submission-action@v0.2.0
+        uses: advanced-security/spdx-dependency-submission-action@v0.3.2
         with:
           # filePath must be a directory; filePattern selects the SPDX file within it.
           # Previously this was set to the file path directly, causing the action's
