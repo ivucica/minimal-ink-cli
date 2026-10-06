@@ -9,7 +9,7 @@
   "keywords": [],
   "type": "module",
   "dependencies": {
-    "ink": "^7.1.0",
+    "ink": "^8.0.0",
     "ink-text-input": "^6.0.0",
     "react": "^19.2.7"
   },
