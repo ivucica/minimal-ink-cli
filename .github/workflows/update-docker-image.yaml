@@ -67,7 +67,7 @@ jobs:
       #     outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=My multi-arch image
 
       - name: Submit SBOM to GitHub Dependency Graph
-        uses: advanced-security/spdx-dependency-submission-action@v0.2.0
+        uses: advanced-security/spdx-dependency-submission-action@v0.4.0
         with:
           # filePath must be a directory; filePattern selects the SPDX file within it.
           # Previously this was set to the file path directly, causing the action's
@@ -275,6 +275,7 @@ jobs:
             git push --force origin $BRANCH_NAME
             
             # Create the Pull Request via gh cli
+            # Alternative: action peter-evans/create-pull-request@v8
             gh pr create \
               --title "chore: update provenance and package manifests" \
               --body "Automatically generated PR to update SLSA provenance receipts, \`package.json\`, and \`package-lock.json\` from workflow run ${GITHUB_RUN_ID}." \

@@ -39,6 +39,11 @@ RUN /build/scripts/20-build-app.sh
 # carried forward into the runtime image.
 RUN npm prune --production
 
+# The TypeScript compiler is build-only and not needed at runtime. Remove the
+# compiler package and its platform binary explicitly so they cannot be shipped
+# in the runtime image.
+RUN rm -rf /app/node_modules/typescript /app/node_modules/@typescript/typescript-linux-x64
+
 # =============================================================================
 # STAGE 2 – runtime
 # =============================================================================
@@ -57,6 +62,9 @@ LABEL org.opencontainers.image.description="A minimal CLI example using Ink and 
 RUN apt-get update \
  && apt-get full-upgrade -y --no-install-recommends \
  && apt-get install -y --no-install-recommends libstdc++6 \
+ # gzip is only needed in the builder stage for Node.js extraction.
+ && apt-get purge -y --auto-remove --allow-remove-essential gzip \
+ # tar cannot be removed easily despite its vulnerabilities, it is used by dpkg \
  && rm -rf /var/lib/apt/lists/*
 
 # Copy only the node binary – npm, npx and the rest of the Node.js toolchain
